@@ -47,14 +47,6 @@ https://github.com/PaulStoffregen/Tlc5940
 - TFT Control:
 http://www.rinkydinkelectronics.com/library.php?id=51
 
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-```
-Give the example
-```
-
 
 ## Authors
 

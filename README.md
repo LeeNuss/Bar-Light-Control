@@ -3,9 +3,14 @@
 **Arduino Project for controlling LEDs build into my bar using TLC5940 drivers and Touchscreen Interface**
 * The Bar has 41 beer mugs with each containing 6 RGB-LEDs (controlled together). Therefore the colour of each mug can be controlled individually.
 * Light-scenes are stored on a SD-Card and are simple textfiles that can be written on a computer.
-* A big part of the project is a filebrowser API that is use by the GUI library to graphically choose a Light-scene from the SD-Card. ![a](images/20181218_173306.jpg =100x)
-* In the Main Window the Lights can be controlled, like Fading, Music Control, Brightness and Speed. ![b](images/20181218_173355.jpg =100x)
-
+* A big part of the project is a filebrowser API that is use by the GUI library to graphically choose a Light-scene from the SD-Card.
+<p align="center">
+  <img src="images/20181218_173306.jpg" width="400">
+</p>
+* In the Main Window the Lights can be controlled, like Fading, Music Control, Brightness and Speed.
+<p align="center">
+  <img src="images/20181218_173355.jpg" width="400">
+</p>
 ## Important Info
 Project is based on an ATmega2560 MCU (Arduino Mega) and will not run easily on any smaller MCU (Maybe with Resistive Touch screen be cause the touch control driver needs lots of memory). 
 At this stage the project is very specific for my hardware setup therefore won't run easily on different setup. However some parts can be adapted for different projects (e.g. the GUI file explorer).

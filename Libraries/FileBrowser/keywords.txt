@@ -7,30 +7,30 @@
 #######################################
 
 FileBrowser		KEYWORD1
-SdFat			KEYWORD1
-SdFile			KEYWORD1	
+SdFat			    KEYWORD1
+SdFile			  KEYWORD1	
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-printFileList      	KEYWORD2
-printCurrentPath  	KEYWORD2
+printFileList     KEYWORD2
+printCurrentPath  KEYWORD2
 getCurrentPath 		KEYWORD2
-getNumOfFiles		KEYWORD2
-changeDir			KEYWORD2
-openParentDir		KEYWORD2
-createDir 			KEYWORD2
-createFile			KEYWORD2
-loadFileList		KEYWORD2
-removeDir			KEYWORD2
-removeFile			KEYWORD2
-renameFile			KEYWORD2
-renameDir			KEYWORD2
-moveFile			KEYWORD2
-moveDir				KEYWORD2
-setHiddenFlag		KEYWORD2
-getHiddenFlag		KEYWORD2
+getNumOfFiles	  	KEYWORD2
+changeDir			    KEYWORD2
+openParentDir		  KEYWORD2
+createDir 			  KEYWORD2
+createFile		  	KEYWORD2
+loadFileList	  	KEYWORD2
+removeDir			    KEYWORD2
+removeFile		  	KEYWORD2
+renameFile		  	KEYWORD2
+renameDir			    KEYWORD2
+moveFile			    KEYWORD2
+moveDir				    KEYWORD2
+setHiddenFlag		  KEYWORD2
+getHiddenFlag		  KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -38,4 +38,4 @@ getHiddenFlag		KEYWORD2
 
 STRING_LENGTH		LITERAL1
 LIST_LENGTH			LITERAL1
-SPI_SPEED			LITERAL1
+SPI_SPEED			  LITERAL1

@@ -1,0 +1,4 @@
+LED_TFT			KEYWORD1
+
+setupLCD		KEYWORD2
+updateDisplay	KEYWORD2

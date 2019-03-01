@@ -1,0 +1,5 @@
+LEDControl	KEYWORD1
+
+fadeLEDs	KEYWORD2
+setupTLC	KEYWORD2
+randomColours	KEYWORD2

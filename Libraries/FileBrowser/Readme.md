@@ -5,3 +5,4 @@
 - [ ] Add info for Hardware setup
 - [ ] Variable length of the strings
 - [ ] Remove the Bar light specific elements from the file
+- [ ] Don't use a file list but a single string repeatedly for memory saving

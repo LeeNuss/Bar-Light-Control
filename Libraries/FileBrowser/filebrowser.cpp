@@ -42,19 +42,19 @@ bool FileBrowser::loadFileList() {
   
 	//Go through all files and subDirectories
 	while (FILE.openNext(SD.vwd(), O_READ)) {
-	//Only not hidden files
-	if (!FILE.isHidden() || (FILE.isHidden() && SHOW_HIDDEN_FILES)) {
-		FILE.getName(CURRENT_FILE_LIST[tmpFileCount],STRING_LENGTH);    //Write filename in list
-		if (FILE.isDir()) {
-			// Indicate a directory.
-			//strcat(CURRENT_FILE_LIST[tmpFileCount], "/");
+		//Only show hidden files if Flag is set
+		if (!FILE.isHidden() || (FILE.isHidden() && SHOW_HIDDEN_FILES)) {
+			FILE.getName(CURRENT_FILE_LIST[tmpFileCount],STRING_LENGTH);    //Write filename in list
+			if (FILE.isDir()) {
+				// Indicate a directory.
+				//strcat(CURRENT_FILE_LIST[tmpFileCount], "/");
+			}
+			CURRENT_INDEX_LIST[tmpFileCount] = FILE.dirIndex();  //Write index in list
+			tmpFileCount++;
 		}
-		CURRENT_INDEX_LIST[tmpFileCount] = FILE.dirIndex();  //Write index in list
-		tmpFileCount++;
-	}
-	
-	FILE.close();
-  }
+		//Close the last file
+		FILE.close();
+  	}
   
   //Set number of Entries
   FILE_COUNT = tmpFileCount;
@@ -68,10 +68,11 @@ bool FileBrowser::loadFileList() {
 bool FileBrowser::changeDir(char* FolderName) {
 	//Save current Directory in string (if changing fails)
 	String path = String(CURRENT_PATH);
-	//If opening path from root folder
+	//If opening path from root folder ('/<Path>')
 	if(FolderName[0] == '/') {
 		strlcpy(CURRENT_PATH, FolderName, sizeof(CURRENT_PATH));
-		if(String(FolderName).length()>1)	strcat(CURRENT_PATH, "/");	//Add slash if not root dir
+		if(String(FolderName).length()>1)
+			strcat(CURRENT_PATH, "/");	//Add slash if not root dir
 		
 		//Try to Change directory
 		if (!SD.chdir(FolderName,true)) {
@@ -131,16 +132,22 @@ bool FileBrowser::openParentDir() {
 	//convert path in string for analysis
 	String path = String(CURRENT_PATH);
 	uint8_t slash = path.lastIndexOf("/", path.length() - 2);	//Find second last slash
-    String temp;
-    if (slash == 0) temp = "/";	//If first char then goto root folder
-    else temp = path.substring(0, slash+1); //Otherwise set parent path
+    	String temp;
+	
+    	if (slash == 0)
+		temp = "/";	//If first char then goto root folder
+    	else
+		temp = path.substring(0, slash+1); //Otherwise set parent path
+	
 	temp.toCharArray(CURRENT_PATH, sizeof(CURRENT_PATH));	//Set new path to char array
-    if (!SD.chdir(CURRENT_PATH)) {	//Try opening path
+	
+	if (!SD.chdir(CURRENT_PATH)) {	//Try opening path
 		error("Opening parent folder failed");
 		path.toCharArray(CURRENT_PATH, sizeof(CURRENT_PATH));	//Reset path
 		return false;
 	}
 	
+	//TODO Might not be needed because loading file ist is called from changeDir()
 	//Update List of current Files and SubDirs
 	if (!loadFileList()) {
 		error("Loading File list failed");

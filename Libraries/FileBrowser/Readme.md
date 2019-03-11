@@ -6,3 +6,4 @@
 - [ ] Variable length of the strings
 - [ ] Remove the Bar light specific elements from the file
 - [ ] Don't use a file list but a single string repeatedly for memory saving
+- [ ] Print errors on the screen with buttons for error handling

@@ -1,7 +1,7 @@
 # Bar-Light-Control
 
 **Arduino Project for controlling LEDs build into my bar using TLC5940 drivers and Touchscreen Interface**
-* The Bar has 41 beer mugs with each containing 6 RGB-LEDs (controlled together). Therefore the colour of each mug can be controlled individually.
+* The Bar has 41 beer mugs with each containing 6 RGB-LEDs (controlled by 3 channels). Therefore the colour of each mug can be controlled individually.
 * Light-scenes are stored on a SD-Card and are simple textfiles that can be written on a computer.
 * A big part of the project is a filebrowser API that is use by the GUI library to graphically choose a Light-scene from the SD-Card.
 <p align="center">

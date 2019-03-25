@@ -12,14 +12,14 @@
 
 #include <ledTFT.h>
 
-#define RED		0
+#define RED			0
 #define GREEN		1
 #define BLUE		2
 
 class LEDControl {
 	public:		
 		//======= CONSTRUCTOR ============
-		LEDControl();	//Constrcutor
+		LEDControl();
 		
 		//======= PUBLIC FUNCTIONS ============
 		void setupTLC() const;
@@ -36,7 +36,6 @@ class LEDControl {
 		uint8_t currentKrug; //Current Krug, where colour is changed
 		uint8_t krugCounter;
 		bool direction;
-		//bool stepsUpDown;
 		
 		//======= FADE FUNC VARS ============
 		unsigned long previous_fadeLEDs_Millis;   //Timers for the functions

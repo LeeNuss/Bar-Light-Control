@@ -154,7 +154,7 @@ void LED_TFT::drawLightControl() {
 	//========== SLIDERS ====================
 	//========================================
 	//Fading Speed Checkbox
-		myLCD.setFont(arial_bold);
+	myLCD.setFont(arial_bold);
 	myLCD.setBackColor(BACKGROUND_COLOUR);
 	myLCD.print(F("Fading:"), SLIDER_X,SLIDER1_Y-SLIDER_FONT_Y);
 	myLCD.setFont(Symbols_32); //Symbol font for checkbox
@@ -932,7 +932,7 @@ void LED_TFT::handleTouchHelpMenu() {
 
 //=========== PUBLIC FUNCTIONS CALLED BY MAIN PROGRAMM ===========
 void LED_TFT::setupLCD() {
-	// Initial touchscreen
+	// Initial touchscreen and display
 	myLCD.InitLCD();
 	myLCD.clrScr();
 	
@@ -942,7 +942,7 @@ void LED_TFT::setupLCD() {
 	digitalWrite(8, HIGH);//on
   
 	
-	//Get some default settings; TODO: Check if that works!
+	//Get some default settings;
 	strlcpy(currentSetting,"Random Colours", sizeof(currentSetting));
 	lightMode = 1;
 
@@ -954,18 +954,15 @@ void LED_TFT::setupLCD() {
 void LED_TFT::updateDisplay() {
 	
 	//if(digitalRead(INTRPT) == HIGH) {
-		int NBFinger = myTouch.dataread();
+		int NBFinger = myTouch.dataread();	//TODO: Put this code into own function for easy modification
 		xb = myTouch.readFingerX(0);
 		yb = myTouch.readFingerY(0);
+		
+		//Cancel gosting effects and multiple pressing
 		if(NBFinger>0 && (xb!=x || yb!=y) ) {
 			x=xb;
 			y=yb;
-			//x = myTouch.readFingerX(0); // X coordinate where the screen has been pressed
-			//y = myTouch.readFingerY(0); // Y coordinates where the screen has been pressed
 			
-			Serial.print(x);
-			Serial.print(" ");
-			Serial.println(y);
 			// Light Control Screen
 			if (currentPage == 0) {
 				handleTouchLedSettings();

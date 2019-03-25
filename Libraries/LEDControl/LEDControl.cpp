@@ -9,13 +9,13 @@ extern uint8_t brightness;
 extern uint8_t currentPage;
 extern uint8_t numSteps;
 extern uint8_t scene[MAX_LIGHT_STEPS][NUM_MUGS];
-extern uint16_t fadeDuration;    //Fading is default off
+extern uint16_t fadeDuration;
 extern uint32_t stepDuration;		
 //===Colour Picker Variables =======
 extern uint8_t guiColourID[4];	
 extern bool stepsUpDown;
 
-uint32_t currentMillis = 0;    // stores the value of millis() in each iteration of loop()
+uint32_t currentMillis = 0;    // stores the value of millis() in each iteration of loop() for non-blocking delays
 
 bool DirectionChange = false;
 
@@ -48,15 +48,14 @@ const uint8_t colourTable[10][3] = { //Colour Table => Each colour has an ID
 LEDControl::LEDControl() {
 	//======= GENERAL VARS ============
 	currentStep = 0; //Number of the current Step
-	currentKrug = 0; //Current Krug, where colour is changed
-	krugCounter = 0; //For updating uneaven muge channels
-	direction = 1;
-	//stepsUpDown = 0; //TODO: Change by GUI!!
+	currentKrug = 0; //Current Mug, where colour is changed
+	krugCounter = 0; //For updating uneaven mug channels
+	direction = 1;	 //Determens if scene is running forward or backwards
 	
 	//======= FADE FUNC VARS ============
 	previous_fadeLEDs_Millis = 0;   //Timers for the functions
 	
-	for(uint8_t k=0;k<3;k++){
+	for(uint8_t k=0; k<3; k++) {
 		currentColour[k] = 0;  //Colours in longPWM values of the current step
 		nextColour[k] = 0;  //Colours in longPWM values of the current step
 	}
@@ -67,7 +66,8 @@ LEDControl::LEDControl() {
 	microphonePin = A0; // select the input pin for the potentiometer
 	microphoneValue = 0; // variable to store the value coming from the sensor
 }
-	
+
+//Initialise the TLC controllers
 void LEDControl::setupTLC() const {
 	Tlc.init();
 	Tlc.clear();
@@ -76,7 +76,7 @@ void LEDControl::setupTLC() const {
 void LEDControl::fadeLEDs(){
 	
 	//Check value of microphone
-	if(musicSen>0) {
+	if(musicSen > 0) {
 		microphoneValue = analogRead(microphonePin);
 	} else microphoneValue = 0;
 		
@@ -91,10 +91,10 @@ void LEDControl::fadeLEDs(){
 			}
 			
 			currentColourID = scene[currentStep][currentKrug]; //Get the colour ID of the current Krug
-			if(DirectionChange==false && direction==1)	nextColourID = scene[(currentStep+1)%numSteps][currentKrug]; //Get the colour ID of the current Krug
-			else if (DirectionChange==false && direction==0)	nextColourID = scene[(currentStep-1)%numSteps][currentKrug]; //Get the colour ID of the current Krug
-			else if(DirectionChange==true && direction==1)	nextColourID = scene[(currentStep-1)%numSteps][currentKrug];
-			else if(DirectionChange==true && direction==0)	nextColourID = scene[(currentStep+1)%numSteps][currentKrug];	
+			if(DirectionChange==false && direction==1)			nextColourID = scene[(currentStep+1) %numSteps][currentKrug]; //Scene running forwards
+			else if (DirectionChange==false && direction==0)	nextColourID = scene[(currentStep-1) %numSteps][currentKrug]; //Scene running backwards
+			else if (DirectionChange==true && direction==1)		nextColourID = scene[(currentStep-1) %numSteps][currentKrug]; //Scene change from for to backwards run
+			else if (DirectionChange==true && direction==0)		nextColourID = scene[(currentStep+1) %numSteps][currentKrug]; //Scene change from back to forwards run	
 			
 			updateKrugColour(currentColourID,nextColourID);
 		}
@@ -105,26 +105,28 @@ void LEDControl::fadeLEDs(){
 		else {
 			updateCurrentStep();
 		}
-		//Reset Timers
+		
+		//Reset the timer depending on what triggered teh step change
 		if(microphoneValue > micThreshold)	previous_fadeLEDs_Millis = currentMillis;
 		else previous_fadeLEDs_Millis = previous_fadeLEDs_Millis + stepDuration + fadeDuration;
     }
     
-	//if(currentPage!=1) {  //If there is SPI communication with SD card dont do anythign with TLCs
-		tlc_updateFades(currentMillis);	
-    //}
+		//Once all new values are set send the data to the TLC contollers
+		tlc_updateFades(currentMillis);
     
 }
 
 void LEDControl::calculateCurrentColour(uint8_t colourID) { //Calculates the real PWM value (0-4096) based on brightness and colour ID
-	uint8_t smallPwmLevel[3] = {colourTable[colourID][RED],colourTable[colourID][GREEN],colourTable[colourID][BLUE]};
-	uint8_t maxRGB = max(max(smallPwmLevel[RED],smallPwmLevel[GREEN]),smallPwmLevel[BLUE]); //Get the minimum value of the colour
+	uint8_t smallPwmLevel[3] = {colourTable[colourID][RED], colourTable[colourID][GREEN], colourTable[colourID][BLUE]};
+	uint8_t maxRGB = max(max(smallPwmLevel[RED], smallPwmLevel[GREEN]), smallPwmLevel[BLUE]); //Get the maximum value of the colour
 	int16_t pwmLevel[3];
 	for(uint8_t k=0;k<3;k++){   //Calculate the small PWM level depending on the brightness
-		if(smallPwmLevel[k]>0) { //Only if value is bigger than 0
-			pwmLevel[k] = smallPwmLevel[k] - maxRGB + brightness; //Get small PWM value of red and adjust it to the brightness
-			if(pwmLevel[k]<0)	pwmLevel[k] = 0;
-		} else if(smallPwmLevel[k]==0) {
+		if(smallPwmLevel[k] > 0) { //Only if value is bigger than 0
+			pwmLevel[k] = smallPwmLevel[k] - maxRGB + brightness; //Adjust PWM value to the brightness
+			if(pwmLevel[k] < 0)
+				pwmLevel[k] = 0;
+		}
+		else if(smallPwmLevel[k] == 0) {
 			pwmLevel[k] = 0;
 		}
 	}
@@ -154,44 +156,22 @@ void LEDControl::calculateNextColour(uint8_t colourID) { //Calculates the real P
 
 void LEDControl::updateKrugColour(uint8_t bufCurrentColourID, uint8_t bufNextColourID) {
 	
-	switch(bufCurrentColourID) {
-		case 0:
-			bufCurrentColourID = guiColourID[0];
-			break;
-		case 1:
-			bufCurrentColourID = guiColourID[1];
-			break;
-		case 2:
-			bufCurrentColourID = guiColourID[2];
-			break;
-		case 3:
-			bufCurrentColourID = guiColourID[3];
-			break;
-	}
+	//IF colourID is below 4 use the colour set in GUI
+	if(bufCurrentColourID<4) bufCurrentColourID = guiColourID[bufCurrentColourID];	
+	if(bufNextColourID<4) bufNextColourID = guiColourID[bufNextColourID];
 	
-	switch(bufNextColourID) {
-		case 0:
-			bufNextColourID = guiColourID[0];
-			break;
-		case 1:
-			bufNextColourID = guiColourID[1];
-			break;
-		case 2:
-			bufNextColourID = guiColourID[2];
-			break;
-		case 3:
-			bufNextColourID = guiColourID[3];
-			break;
-	}
-	
+	//Get real PWM value based on colour and brightness
 	calculateCurrentColour(bufCurrentColourID);
     calculateNextColour(bufNextColourID);       
-    //Set the Fade values for each 
+	
+    //Set the Fade values for each LED channel for random colour mode
 	if (lightMode==1) {
 		currentColour[RED] = Tlc.get(currentKrug+krugCounter);
 		currentColour[GREEN] = Tlc.get(currentKrug+krugCounter+2);
 		currentColour[BLUE] = Tlc.get(currentKrug+krugCounter+4);
 	}
+	
+	//Update values in the tlc-buffer for the mug 
     tlc_addFade(currentKrug+krugCounter, currentColour[RED], nextColour[RED], currentMillis, currentMillis + fadeDuration);
     tlc_addFade(currentKrug+krugCounter+2, currentColour[GREEN], nextColour[GREEN], currentMillis, currentMillis + fadeDuration);
     tlc_addFade(currentKrug+krugCounter+4, currentColour[BLUE], nextColour[BLUE], currentMillis, currentMillis + fadeDuration);
@@ -199,45 +179,35 @@ void LEDControl::updateKrugColour(uint8_t bufCurrentColourID, uint8_t bufNextCol
 
 void LEDControl::updateCurrentStep() {
 	currentStep = (currentStep+1) % numSteps; //Update the current step. If last step is over, set it to first step
-	//Serial.println(currentStep);
 }
 
 void LEDControl::updateCurrentStepUpDown() {
-	//Serial.println(currentStep);
 	//Switch direction if end is reached
-	if(DirectionChange==true) {
-		if(currentStep<=0) {
+	if(DirectionChange == true) {
+		if(currentStep <= 0) {
 			direction = 1;	//Count up to numSteps
 			currentStep = 0;
-			//Serial.println(currentStep);
 		}
-		else if(currentStep>=numSteps-1) {	//SOLUTION: Hier numSteps-1 wahrscheinlich
+		else if(currentStep >= numSteps-1) {
 			direction = 0;	//Count down to 0
 			currentStep = numSteps-1;
-			//Serial.println(currentStep);
 		}	
 		
 		//Reset the change Flag
 		DirectionChange = false;
 	}
-																			  
-								  
-						   
-								
-   
-	//Serial.println(currentStep);
 	
 	//Update step depending on direction
-	if(direction==1) {
+	if(direction == 1) {
 		currentStep++;	//Step counting upwards
-		if(currentStep==numSteps-1) DirectionChange = true;
+		if(currentStep == numSteps-1)
+			DirectionChange = true;
 	}
-	else if(direction==0) {
+	else if(direction == 0) {
 		currentStep--;	//Steps going downwards
-		if(currentStep==0) DirectionChange = true;
+		if(currentStep == 0)
+			DirectionChange = true;
 	}
-	
-	//Serial.println(currentStep);
 }
 
 
@@ -248,9 +218,10 @@ void LEDControl::updateCurrentStepUpDown() {
 void LEDControl::randomColours(){
 	
 	//Check value of microphone
-	if(musicSen>0) {
+	if(musicSen > 0) {
 		microphoneValue = analogRead(microphonePin);
-	} else microphoneValue = 0;
+	}
+	else microphoneValue = 0;
 	
 	//Either timer or musicControl can enable the step switch
     if((currentMillis - previous_fadeLEDs_Millis >= stepDuration+fadeDuration) || (microphoneValue > micThreshold) ) { 
@@ -260,9 +231,9 @@ void LEDControl::randomColours(){
 			if(!(currentKrug%2)) {  //IMPORTANT: Update the counter every second time, because single RGB LEDs are wired with one channel gap (e.g. LED1= Ch. 1,3,5)
 			  krugCounter = (currentKrug/2)*4;
 			}
-			currentColourID = nextColourID; //Get random colour ID;
+			currentColourID = nextColourID; //Reset current colourID for fade effect
 			
-			nextColourID = random(1,10); //Get random colour ID from 1 to 9 (Black is 0 and excluded)
+			nextColourID = random(1,10); //Get random colour ID from 1 to 9 (Black is 0 and excluded for nicer visual effect)
 			updateKrugColour(currentColourID,nextColourID);
 		}
 		
@@ -272,13 +243,12 @@ void LEDControl::randomColours(){
 		else {
 			updateCurrentStep();
 		}
-		//Reset the timer
+		
+		//Reset the timer depending on what triggered teh step change
 		if(microphoneValue > micThreshold)	previous_fadeLEDs_Millis = currentMillis;
 		else previous_fadeLEDs_Millis = previous_fadeLEDs_Millis + stepDuration + fadeDuration;
     }
     
-	//if(currentPage!=1) {  //If there is SPI communication with SD card dont do anythign with TLCs
 		tlc_updateFades(currentMillis);
-    //}
     
 }
